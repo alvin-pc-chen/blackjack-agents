@@ -1,0 +1,25 @@
+experiment_name: "basic_vs_random_6deck"
+num_rounds: 100
+num_decks: 6
+shoe_seed: 42
+hit_soft_17: false
+output_format: json
+
+players:
+  - name: "BasicBot"
+    agent_type: "basic_strategy"
+    bet: 100
+
+  - name: "SimpleBot"
+    agent_type: "simple"
+    bet: 100
+
+  - name: "RandomBot"
+    agent_type: "random"
+    bet: 100
+    agent_params:
+      seed: 123
+
+  - name: "CounterBot"
+    agent_type: "card_counter"
+    bet: 100
