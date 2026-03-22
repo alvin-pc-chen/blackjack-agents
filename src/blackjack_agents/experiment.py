@@ -70,9 +70,12 @@ class AgentFactory:
             if agent_type == "openai":
                 from .agents.llm.openai_agent import OpenAIAgent
                 return OpenAIAgent(**kwargs)
+            if agent_type == "groq":
+                from .agents.llm.groq_agent import GroqAgent
+                return GroqAgent(**kwargs)
             raise ValueError(
                 f"Unknown agent type: {agent_type!r}. "
-                f"Available: {sorted(cls._registry)} + ['claude', 'openai']"
+                f"Available: {sorted(cls._registry)} + ['claude', 'openai', 'groq']"
             )
         return agent_cls(**kwargs)
 

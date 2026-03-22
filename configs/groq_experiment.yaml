@@ -1,0 +1,21 @@
+experiment_name: groq_vs_algorithmic
+num_rounds: 10
+num_decks: 6
+shoe_seed: 42
+hit_soft_17: false
+output_format: json
+
+players:
+  - name: "GroqBot"
+    agent_type: "groq"
+    bet: 100
+    agent_params:
+      model: "openai/gpt-oss-20b"
+
+  - name: "BasicBot"
+    agent_type: "basic_strategy"
+    bet: 100
+
+  - name: "SimpleBot"
+    agent_type: "simple"
+    bet: 100
