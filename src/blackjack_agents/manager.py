@@ -35,7 +35,7 @@ class GameManager:
         shoe: CardSource,
         *,
         hit_soft_17: bool = False,
-        min_cards_per_round: int | None = None,
+        reshuffle_threshold: int = 52,
     ) -> None:
         self._player_tuples = [(name, bet) for name, bet, _ in player_agents]
         self._agent_map: dict[str, Agent] = {name: agent for name, _, agent in player_agents}
@@ -46,9 +46,7 @@ class GameManager:
         self._hit_soft_17 = hit_soft_17
         self._tracker = GameStateTracker()
         self._round_number = 0
-
-        # Minimum cards needed to start a round (conservative estimate)
-        self._min_cards = min_cards_per_round or (len(player_agents) + 1) * 6
+        self._reshuffle_threshold = reshuffle_threshold
 
         self._table = Table(
             self._player_tuples,
@@ -56,13 +54,20 @@ class GameManager:
             hit_soft_17=hit_soft_17,
         )
 
+    def _check_reshuffle(self) -> None:
+        """Reshuffle the shoe if it's below the threshold (like a cut card)."""
+        if len(self._shoe) < self._reshuffle_threshold and hasattr(self._shoe, 'reshuffle'):
+            logger.info(
+                "Shoe down to %d cards (threshold %d), reshuffling",
+                len(self._shoe), self._reshuffle_threshold,
+            )
+            self._shoe.reshuffle()  # type: ignore[union-attr]
+            # Reset card counting state since all cards are back in the shoe
+            self._tracker.reset_counts()
+
     def play_round(self) -> RoundRecord:
         """Play a single round start-to-finish, returning the record."""
-        if len(self._shoe) < self._min_cards:
-            raise RuntimeError(
-                f"Not enough cards in shoe ({len(self._shoe)}) "
-                f"to start a round (need {self._min_cards})"
-            )
+        self._check_reshuffle()
 
         self._round_number += 1
         self._tracker.begin_round(self._round_number)
@@ -105,15 +110,9 @@ class GameManager:
         )
 
     def play_rounds(self, n: int) -> list[RoundRecord]:
-        """Play n rounds sequentially. Stops early if shoe depleted."""
+        """Play n rounds sequentially, reshuffling when the shoe runs low."""
         records: list[RoundRecord] = []
         for _ in range(n):
-            if len(self._shoe) < self._min_cards:
-                logger.info(
-                    "Shoe depleted after %d rounds (need %d, have %d)",
-                    len(records), self._min_cards, len(self._shoe),
-                )
-                break
             records.append(self.play_round())
         return records
 

@@ -87,7 +87,7 @@ class TestGameManager:
         results2 = run_experiment()
         assert results1 == results2
 
-    def test_shoe_depletion_stops_early(self) -> None:
+    def test_reshuffle_on_low_shoe(self) -> None:
         shoe = SeededShoe(seed=42, num_decks=1)  # Only 52 cards
         mgr = GameManager(
             player_agents=[
@@ -97,8 +97,9 @@ class TestGameManager:
             ],
             shoe=shoe,
         )
-        records = mgr.play_rounds(100)
-        assert len(records) < 100  # Should stop early
+        records = mgr.play_rounds(20)
+        assert len(records) == 20  # Reshuffles instead of stopping
+        assert shoe.shuffle_count > 1  # Must have reshuffled at least once
 
     def test_actions_recorded(self) -> None:
         shoe = SeededShoe(seed=42, num_decks=6)

@@ -216,9 +216,11 @@ class TestGroqAgent:
         rf = call_kwargs["response_format"]
         assert rf["type"] == "json_schema"
         assert rf["json_schema"]["strict"] is True
-        # Enum should be restricted to available actions
+        # Enum contains all 5 actions (static schema for Groq compatibility)
         schema = rf["json_schema"]["schema"]
-        assert set(schema["properties"]["action"]["enum"]) == {"hit", "stand"}
+        assert set(schema["properties"]["action"]["enum"]) == {
+            "hit", "stand", "double", "split", "surrender",
+        }
 
     def test_few_shot_examples_in_messages(self) -> None:
         agent, mock_client = self._make_agent('{"action": "hit"}')

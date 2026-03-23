@@ -30,19 +30,33 @@ class SeededShoe:
     ) -> None:
         self._seed = seed
         self._num_decks = num_decks
+        self._suits = suits
         self._rng = _random.Random(seed)
+        self._shuffle_count = 0
 
-        # Build the full shoe
+        self._build_and_shuffle()
+
+    def _build_and_shuffle(self) -> None:
+        """Build a fresh shoe from all decks and shuffle with the RNG."""
         cards: list[Card] = []
-        for suit in suits:
+        for suit in self._suits:
             for rank, value in DEFAULT_RANKS.items():
                 cards.append(Card(suit, rank, value))
-        cards *= num_decks
+        cards *= self._num_decks
         self._rng.shuffle(cards)
 
         self._cards = deque(cards)
         self._initial_order = list(self._cards)
         self._drawn_cards: list[Card] = []
+        self._shuffle_count += 1
+
+    def reshuffle(self) -> None:
+        """Reshuffle all cards back into a fresh shoe.
+
+        Uses the next state of the deterministic RNG, so the new card order
+        is reproducible but different from the previous shuffle.
+        """
+        self._build_and_shuffle()
 
     def draw_card(self) -> Card:
         if not self._cards:
@@ -70,6 +84,11 @@ class SeededShoe:
     @property
     def seed(self) -> int:
         return self._seed
+
+    @property
+    def shuffle_count(self) -> int:
+        """How many times this shoe has been shuffled (including initial)."""
+        return self._shuffle_count
 
 
 class PredeterminedShoe:

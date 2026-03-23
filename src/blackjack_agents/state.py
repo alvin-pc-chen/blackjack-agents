@@ -175,6 +175,10 @@ class GameStateTracker:
         self._rounds.append(record)
         return record
 
+    def reset_counts(self) -> None:
+        """Reset card counting state (called on reshuffle)."""
+        self._face_up_cards = []
+
     @property
     def face_up_cards(self) -> list[CardView]:
         return list(self._face_up_cards)

@@ -63,7 +63,7 @@ class GroqAgent(Agent):
     def decide(self, context: GameContext) -> Action:
         available = {a.value for a in context.available_actions}
         messages = self._build_messages(context)
-        response_format = self._build_response_format(available)
+        response_format = self._build_response_format()
 
         for attempt in range(self._max_retries):
             try:
@@ -104,8 +104,13 @@ class GroqAgent(Agent):
         parsed = json.loads(content)
         return parsed.get("action", "stand")
 
-    def _build_response_format(self, available_actions: set[str]) -> dict[str, Any]:
-        """Build a json_schema response_format with enum restricted to available actions."""
+    def _build_response_format(self) -> dict[str, Any]:
+        """Build a json_schema response_format with all actions in enum.
+
+        Uses a static enum (all 5 actions) to avoid Groq constrained decoding
+        failures when the enum changes between calls. Validation of whether the
+        returned action is actually available is done in decide().
+        """
         return {
             "type": "json_schema",
             "json_schema": {
@@ -116,7 +121,7 @@ class GroqAgent(Agent):
                     "properties": {
                         "action": {
                             "type": "string",
-                            "enum": sorted(available_actions),
+                            "enum": ["double", "hit", "split", "stand", "surrender"],
                             "description": "The blackjack action to take.",
                         },
                     },
